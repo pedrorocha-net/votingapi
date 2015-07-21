@@ -8,6 +8,7 @@
 namespace Drupal\votingapi\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Configures administrative settings for VotingAPI.
@@ -24,10 +25,23 @@ class AdminSettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, array &$form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('votingapi.settings');
 
-    $options = array(300, 900, 1800, 3600, 10800, 21600, 32400, 43200, 86400, 172800, 345600, 604800);
+    $options = array(
+      300,
+      900,
+      1800,
+      3600,
+      10800,
+      21600,
+      32400,
+      43200,
+      86400,
+      172800,
+      345600,
+      604800
+    );
     $options = array(0 => $this->t('Immediately')) + array_combine($options, $options) + array(-1 => $this->t('Never'));
     $form['anonymous_window'] = array(
       '#type' => 'select',
@@ -61,7 +75,7 @@ class AdminSettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, array &$form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('votingapi.settings')
       ->set('anonymous_window', $form_state['values']['anonymous_window'])
       ->set('user_window', $form_state['values']['user_window'])
@@ -71,4 +85,14 @@ class AdminSettingsForm extends ConfigFormBase {
     parent::submitForm($form, $form_state);
   }
 
+  /**
+   * Gets the configuration names that will be editable.
+   *
+   * @return array
+   *   An array of configuration object names that are editable if called in
+   *   conjunction with the trait's config() method.
+   */
+  protected function getEditableConfigNames() {
+    // TODO: Implement getEditableConfigNames() method.
+  }
 }
