@@ -1,5 +1,0 @@
-votingapi.admin_overview:
-  title: 'Voting API'
-  parent: system.admin_config_search
-  description: 'Configure sitewide settings for user-generated ratings and votes.'
-  route_name: votingapi.admin_overview
