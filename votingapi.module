@@ -14,24 +14,24 @@
  * Model class for votingapi_vote table.
  */
 class VotingApi_Vote {
-  public $vote_id     = NULL;
+  public $vote_id = NULL;
   public $entity_type = 'node';
-  public $entity_id   = NULL;
-  public $value_type  = 'percent';
-  public $value       = NULL;
-  public $tag         = 'vote';
-  public $uid         = NULL; // defaults to current user
+  public $entity_id = NULL;
+  public $value_type = 'percent';
+  public $value = NULL;
+  public $tag = 'vote';
+  public $uid = NULL; // defaults to current user
   public $vote_source = NULL; // defaults to current IP
-  public $timestamp   = REQUEST_TIME;
-  
+  public $timestamp = REQUEST_TIME;
+
   public function __construct($data) {
     foreach ($data as $k => $v) {
       $this->$k = $v;
     }
-    $this->uid         = is_null($this->uid) ? $GLOBALS['user']->uid : $this->uid;
+    $this->uid = is_null($this->uid) ? $GLOBALS['user']->uid : $this->uid;
     $this->vote_source = is_null($this->vote_source) ? ip_address() : $this->vote_source;
   }
-  
+
   /**
    * Save a collection of votes to the database.
    *
@@ -62,6 +62,7 @@ class VotingApi_Vote {
     module_invoke_all('votingapi_insert', $votes);
     return $votes;
   }
+
   /**
    * Delete votes from the database.
    *
@@ -78,7 +79,7 @@ class VotingApi_Vote {
       VotingApi_VoteStorage::get()->deleteVotes($votes, $vids);
     }
   }
-  
+
   public function save() {
     VotingApi_VoteStorage::get()->addVote($this);
   }
@@ -94,14 +95,14 @@ class VotingApi_Vote {
 class VotingApi_Criteria extends VotingApi_Vote {
   public function __construct($data) {
     parent::__construct($data);
- 
+
     if ($this->uid != 0) {
       $this->vote_source = NULL;
     }
-    
+
     $this->calculateWindow();
   }
-  
+
   /**
    * Calculate the correct timestamp for the vote-rollover.
    */
@@ -109,16 +110,18 @@ class VotingApi_Criteria extends VotingApi_Vote {
     $window = -1;
     if ($this->uid == 0) {
       if (!empty($this->vote_source)) {
-        $window = \Drupal::config('votingapi.settings')->get('anonymous_window', 86400);
+        $window = \Drupal::config('votingapi.settings')
+          ->get('anonymous_window', 86400);
       }
-    } else {
+    }
+    else {
       $window = \Drupal::config('votingapi.settings')->get('user_window', -1);
     }
     if ($window >= 0) {
       $this->timestamp = REQUEST_TIME - $window;
     }
   }
-  
+
   /**
    * Select individual votes from the database.
    *
@@ -131,19 +134,22 @@ class VotingApi_Criteria extends VotingApi_Vote {
   public function select($limit = 0) {
     return VotingApi_VoteStorage::get()->selectVotes($this, $limit);
   }
-  
+
   /**
    * Delete all matching votes.
    */
   public function delete() {
     VotingApi_Vote::deleteMultiple($this->select());
   }
-  
+
   public static function byEntity($entity_type, $entity_ids) {
     $class = get_called_class();
-    return new $class(array('entity_type' => $entity_type, 'entity_id' => $entity_ids));
+    return new $class(array(
+      'entity_type' => $entity_type,
+      'entity_id' => $entity_ids
+    ));
   }
-  
+
   /**
    * Retrieve the value of the first vote matching the criteria.
    */
@@ -156,26 +162,26 @@ class VotingApi_Criteria extends VotingApi_Vote {
 class VotingApi_Result {
   public $vote_cache_id = NULL;
   public $entity_type = 'node';
-  public $entity_id   = NULL;
-  public $value_type  = 'percent';
-  public $value       = NULL;
-  public $tag         = 'vote';
-  public $function    = NULL;
-  public $timestamp   = REQUEST_TIME;
-  
+  public $entity_id = NULL;
+  public $value_type = 'percent';
+  public $value = NULL;
+  public $tag = 'vote';
+  public $function = NULL;
+  public $timestamp = REQUEST_TIME;
+
   public function __construct($data) {
     foreach ($data as $k => $v) {
       $this->$k = $v;
     }
   }
-  
+
   /**
    * Save this result to the database.
    */
   public function save() {
     drupal_write_record('votingapi_cache', $vote_result);
   }
-  
+
   /**
    * Save a bundle of vote results to the database.
    *
@@ -210,7 +216,9 @@ class VotingApi_Result {
       foreach ($vote_results as $vote) {
         $vids[] = $vote->vote_cache_id;
       }
-      db_delete('votingapi_cache')->condition('vote_cache_id', $vids, 'IN')->execute();
+      db_delete('votingapi_cache')
+        ->condition('vote_cache_id', $vids, 'IN')
+        ->execute();
     }
   }
 }
@@ -242,26 +250,30 @@ class VotingApi_ResultCriteria extends VotingApi_Result {
     $result->fetchOptions['class_name'] = 'VotingApi_Result';
     return $result->fetchAll(PDO::FETCH_CLASS);
   }
-  
+
   public static function byEntity($entity_type, $entity_ids) {
     $class = get_called_class();
-    return new $class(array('entity_type' => $entity_type, 'entity_id' => $entity_ids));
+    return new $class(array(
+      'entity_type' => $entity_type,
+      'entity_id' => $entity_ids
+    ));
   }
 
   protected function addConditions(&$query) {
     foreach ($this as $key => $value) {
-      if (!isset($value))
+      if (!isset($value)) {
         continue;
+      }
       $query->condition($key, $value, is_array($value) ? 'IN' : '=');
     }
   }
-  
+
   public function delete() {
     $query = db_delete('votingapi_cache');
     $this->addConditions($query);
     $query->execute();
   }
-  
+
   /**
    * Retrieve the value of the first result matching the criteria.
    */
@@ -273,15 +285,16 @@ class VotingApi_ResultCriteria extends VotingApi_Result {
 
 class VotingApi_VoteStorage {
   public static $instance = NULL;
-  
+
   public static function get() {
     if (!self::$instance) {
-      $class = \Drupal::state()->get('votingapi_vote_storage', 'VotingApi_VoteStorage');
+      $class = \Drupal::state()
+        ->get('votingapi_vote_storage', 'VotingApi_VoteStorage');
       self::$instance = new $class;
     }
     return self::$instance;
   }
-  
+
   public function addVote(&$vote) {
     drupal_write_record('votingapi_vote', $vote);
   }
@@ -307,19 +320,22 @@ class VotingApi_VoteStorage {
     $result->fetchOptions['class_name'] = 'VotingApi_Vote';
     return $result->fetchAll(PDO::FETCH_CLASS);
   }
-  
+
   /**
    * Builds the default VotingAPI results for the three supported voting styles.
    */
   function standardResults($entity_type, $entity_id) {
     $cache = array();
 
-    $sql  = "SELECT v.value_type, v.tag, ";
+    $sql = "SELECT v.value_type, v.tag, ";
     $sql .= "COUNT(v.value) as value_count, SUM(v.value) as value_sum  ";
     $sql .= "FROM {votingapi_vote} v ";
     $sql .= "WHERE v.entity_type = :type AND v.entity_id = :id AND v.value_type IN ('points', 'percent') ";
     $sql .= "GROUP BY v.value_type, v.tag";
-    $results = db_query($sql, array(':type' => $entity_type, ':id' => $entity_id));
+    $results = db_query($sql, array(
+      ':type' => $entity_type,
+      ':id' => $entity_id
+    ));
 
     foreach ($results as $result) {
       $cache[$result->tag][$result->value_type]['count'] = $result->value_count;
@@ -329,11 +345,14 @@ class VotingApi_VoteStorage {
       }
     }
 
-    $sql  = "SELECT v.tag, v.value, v.value_type, COUNT(1) AS score ";
+    $sql = "SELECT v.tag, v.value, v.value_type, COUNT(1) AS score ";
     $sql .= "FROM {votingapi_vote} v ";
     $sql .= "WHERE v.entity_type = :type AND v.entity_id = :id AND v.value_type = 'option' ";
     $sql .= "GROUP BY v.value, v.tag, v.value_type";
-    $results = db_query($sql, array(':type' => $entity_type, ':id' => $entity_id));
+    $results = db_query($sql, array(
+      ':type' => $entity_type,
+      ':id' => $entity_id
+    ));
 
     foreach ($results as $result) {
       $cache[$result->tag][$result->value_type]['option-' . $result->value] = $result->score;
@@ -343,7 +362,7 @@ class VotingApi_VoteStorage {
   }
 
 }
- 
+
 /**
  * Implements of hook_menu().
  *
@@ -366,17 +385,17 @@ function _votingapi_menu() {
   return $items;
 }
 
-/**
- * Implements hook_permission().
- */
-function votingapi_permission() {
-  return array(
-    'administer voting api' => array(
-      'title' => t('Administer Voting API'),
-      'restrict access' => TRUE,
-    ),
-  );
-}
+///**
+// * Implements hook_permission().
+// */
+//function votingapi_permission() {
+//  return array(
+//    'administer voting api' => array(
+//      'title' => t('Administer Voting API'),
+//      'restrict access' => TRUE,
+//    ),
+//  );
+//}
 
 /**
  * Implements of hook_cron().
@@ -384,7 +403,9 @@ function votingapi_permission() {
  * Allows db-intensive recalculations to be deferred until cron-time.
  */
 function votingapi_cron() {
-  if (\Drupal::config('votingapi.settings')->get('calculation_schedule') == 'cron') {
+  if (\Drupal::config('votingapi.settings')
+      ->get('calculation_schedule') == 'cron'
+  ) {
     $time = REQUEST_TIME;
     $last_cron = \Drupal::state()->get('votingapi_last_cron', 0);
     $result = db_query('SELECT DISTINCT entity_type, entity_id FROM {votingapi_vote} WHERE timestamp > :timestamp', array(':timestamp' => $last_cron));
@@ -441,7 +462,8 @@ function votingapi_set_votes(&$votes, $criteria = NULL) {
       }
       $tmp->delete();
     }
-  } else {
+  }
+  else {
     if (is_object($criteria)) {
       $criteria = array($criteria);
     }
@@ -457,7 +479,9 @@ function votingapi_set_votes(&$votes, $criteria = NULL) {
     $touched[$vote->entity_type][$vote->entity_id] = TRUE;
   }
 
-  if (\Drupal::config('votingapi.settings')->get('calculation_schedule') != 'cron') {
+  if (\Drupal::config('votingapi.settings')
+      ->get('calculation_schedule') != 'cron'
+  ) {
     foreach ($touched as $type => $ids) {
       foreach ($ids as $id => $bool) {
         $touched[$type][$id] = votingapi_recalculate_results($type, $id);
@@ -494,17 +518,21 @@ function votingapi_recalculate_results($entity_type, $entity_id, $force_calculat
   // if we're operating in cron mode, and the 'force recalculation' flag is NOT set,
   // bail out. The cron run will pick up the results.
 
-  if (\Drupal::config('votingapi.settings')->get('calculation_schedule') != 'cron' || $force_calculation == TRUE) {
+  if (\Drupal::config('votingapi.settings')
+      ->get('calculation_schedule') != 'cron' || $force_calculation == TRUE
+  ) {
     \Drupal::database()->delete('votingapi_cache')
       ->condition('entity_type', $entity_type)
       ->condition('entity_id', $entity_id)
       ->execute();
 
     // Bulk query to pull the majority of the results we care about.
-    $cache = VotingApi_VoteStorage::get()->standardResults($entity_type, $entity_id);
+    $cache = VotingApi_VoteStorage::get()
+      ->standardResults($entity_type, $entity_id);
 
     // Give other modules a chance to alter the collection of votes.
-    \Drupal::moduleHandler()->alter('votingapi_results', $cache, $entity_type, $entity_id);
+    \Drupal::moduleHandler()
+      ->alter('votingapi_results', $cache, $entity_type, $entity_id);
 
     // Now, do the caching. Woo.
     $cached = array();
