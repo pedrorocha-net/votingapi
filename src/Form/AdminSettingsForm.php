@@ -77,11 +77,10 @@ class AdminSettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('votingapi.settings')
-      ->set('anonymous_window', $form_state['values']['anonymous_window'])
-      ->set('user_window', $form_state['values']['user_window'])
-      ->set('calculation_schedule', $form_state['values']['calculation_schedule'])
+      ->set('anonymous_window', $form_state->getValue('anonymous_window'))
+      ->set('user_window', $form_state->getValue('user_window'))
+      ->set('calculation_schedule', $form_state->getValue('calculation_schedule'))
       ->save();
-
     parent::submitForm($form, $form_state);
   }
 
@@ -93,6 +92,6 @@ class AdminSettingsForm extends ConfigFormBase {
    *   conjunction with the trait's config() method.
    */
   protected function getEditableConfigNames() {
-    // TODO: Implement getEditableConfigNames() method.
+    return ['votingapi.settings'];
   }
 }
