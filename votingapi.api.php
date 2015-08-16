@@ -5,6 +5,25 @@
  * Provides hook documentation for the VotingAPI module.
  */
 
+/**
+ * @addtogroup hooks
+ * @{
+ */
+
+/**
+ * Alter the information provided in \Drupal\votingapi\Annotation\VoteResult.
+ *
+ * @param $results
+ *   The array of vote results, keyed on the machine-readable name.
+ */
+function hook_vote_result_info_alter(&$results) {
+  // Override the Voting API module's 'Count' vote result label.
+  $results['count']['label'] = t('All the things');
+}
+
+/**
+ * @} End of "addtogroup hooks".
+ */
 
 /**
  * Adds to or changes the calculated vote results for a piece of content.
@@ -34,7 +53,7 @@ function hook_votingapi_results_alter(&$vote_results, $content_type, $content_id
   // We're using a MySQLism (STDDEV isn't ANSI SQL), but it's OK because this is
   // an example. And no one would ever base real code on sample code. Ever. Never.
 
-  $sql  = "SELECT v.tag, STDDEV(v.value) as standard_deviation ";
+  $sql = "SELECT v.tag, STDDEV(v.value) as standard_deviation ";
   $sql .= "FROM {votingapi_vote} v ";
   $sql .= "WHERE v.content_type = '%s' AND v.content_id = %d AND v.value_type = 'percent' ";
   $sql .= "GROUP BY v.tag";
@@ -48,7 +67,6 @@ function hook_votingapi_results_alter(&$vote_results, $content_type, $content_id
     $vote_results[$result['tag']]['percent']['standard_deviation'] = $result['standard_deviation'];
   }
 }
-
 
 /**
  * Adds to or alters metadata describing Voting tags, value_types, and functions.
@@ -72,7 +90,8 @@ function hook_votingapi_metadata_alter(&$data) {
   $data['tags']['bread'] = array(
     'name' => t('Bread'),
     'description' => t('The quality of the food at a restaurant.'),
-    'module' => 'mymodule', // This is optional; we can add it for our own purposes.
+    'module' => 'mymodule',
+    // This is optional; we can add it for our own purposes.
   );
   $data['tags']['circuses'] = array(
     'name' => t('Circuses'),
@@ -124,7 +143,7 @@ function hook_votingapi_views_formatters($field) {
  * 'votingapi_vote_storage' state to an alternative class.
  */
 \Drupal::state()->set('votingapi_vote_storage', 'Mongodb_VoteStorage');
- 
+
 class Mongodb_VoteStorage {
 
   /**
