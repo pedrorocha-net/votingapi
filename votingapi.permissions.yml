@@ -1,3 +1,3 @@
-bypass node access:
+administer voting api:
   title: 'Administer Voting API'
-  restrict access: true
+  description: 'Allow access to configure Voting API.'
