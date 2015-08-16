@@ -1,0 +1,4 @@
+votingapi.admin_settings:
+  title: 'Settings'
+  route_name: votingapi.admin_settings
+  base_route: votingapi.admin_settings
