@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains Drupal\votingapi\Entity\VoteCache.
+ * Contains Drupal\votingapi\Entity\VoteResult.
  */
 
 namespace Drupal\votingapi\Entity;
@@ -11,28 +11,28 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\user\UserInterface;
-use Drupal\votingapi\VoteCacheInterface;
+use Drupal\votingapi\VoteResultInterface;
 
 /**
- * Defines the VoteCache entity.
+ * Defines the VoteResult entity.
  *
  * @ingroup votingapi
  *
  * @ContentEntityType(
- *   id = "vote_cache",
- *   label = @Translation("Vote Cache"),
+ *   id = "vote_result",
+ *   label = @Translation("Vote Result"),
  *   handlers = {
- *     "storage" = "Drupal\votingapi\VoteCacheStorage",
- *     "views_data" = "Drupal\votingapi\Entity\VoteCacheViewsData",
+ *     "storage" = "Drupal\votingapi\VoteResultStorage",
+ *     "views_data" = "Drupal\votingapi\Entity\VoteResultViewsData",
  *   },
- *   base_table = "votingapi_cache",
+ *   base_table = "votingapi_result",
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid"
  *   },
  * )
  */
-class VoteCache extends ContentEntityBase implements VoteCacheInterface {
+class VoteResult extends ContentEntityBase implements VoteResultInterface {
 
   /**
    * {@inheritdoc}
@@ -169,7 +169,7 @@ class VoteCache extends ContentEntityBase implements VoteCacheInterface {
 
     $fields['id'] = BaseFieldDefinition::create('integer')
       ->setLabel(t('ID'))
-      ->setDescription(t('The vote ID.'))
+      ->setDescription(t('The vote result ID.'))
       ->setReadOnly(TRUE)
       ->setSetting('unsigned', TRUE);
 

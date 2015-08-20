@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\votingapi\VoteCacheStorageInterface.
+ * Contains \Drupal\votingapi\VoteResultStorageInterface.
  */
 
 namespace Drupal\votingapi;
@@ -12,6 +12,6 @@ use Drupal\Core\Entity\EntityStorageInterface;
 /**
  * Defines an interface for vote entity storage classes.
  */
-interface VoteCacheStorageInterface extends EntityStorageInterface {
+interface VoteResultStorageInterface extends EntityStorageInterface {
 
 }

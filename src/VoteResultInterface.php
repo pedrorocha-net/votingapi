@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\votingapi\VoteCacheInterface.
+ * Contains \Drupal\votingapi\VoteResultInterface.
  */
 
 namespace Drupal\votingapi;
@@ -14,7 +14,7 @@ use Drupal\user\UserInterface;
 /**
  * Provides an interface defining a vote entity.
  */
-interface VoteCacheInterface extends ContentEntityInterface, EntityOwnerInterface {
+interface VoteResultInterface extends ContentEntityInterface, EntityOwnerInterface {
 
   /**
    * Returns the type of entity that the vote was cast on.

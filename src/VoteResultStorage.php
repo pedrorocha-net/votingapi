@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\votingapi\VoteCacheStorage.
+ * Contains \Drupal\votingapi\VoteResultStorage.
  */
 
 namespace Drupal\votingapi;
@@ -15,6 +15,6 @@ use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
  * This extends the \Drupal\entity\EntityDatabaseStorage class, adding
  * required special handling for vote entities.
  */
-class VoteCacheStorage extends SqlContentEntityStorage implements VoteCacheStorageInterface {
+class VoteResultStorage extends SqlContentEntityStorage implements VoteResultStorageInterface {
 
 }
