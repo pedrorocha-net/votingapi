@@ -33,35 +33,28 @@ function votingapi_help($route_name, RouteMatchInterface $route_match) {
 /**
  * Implements hook_entity_delete().
  *
- * Delete all votes and cache entries for the deleted entities
+ * Delete all votes and result entries for the deleted entities
  */
 function votingapi_entity_delete(Drupal\Core\Entity\EntityInterface $entity) {
-  //  ##############
-  //  $ids = array($entity->id());
-  //  $type = $entity->getEntityTypeId();
-  //  ResultCriteria::byEntity($type, $ids)->delete();
-  //  Criteria::byEntity($type, $ids)->delete();
-  //  ##############
-
-//  // If a vote is deleted, the results need to be updated.
-//  if ($entity instanceof \Drupal\votingapi\VoteInterface) {
-//    Drupal::service('plugin.manager.votingapi.result')
-//      ->recalculateResults($entity->getVotedEntityType(), $entity->getVotedEntityId());
-//  }
-//  // For any other entity, remove any votes and results.
-//  else {
-//    $votes = Drupal::entityQuery('vote')
-//      ->condition('entity_type', $entity->getEntityTypeId())
-//      ->condition('entity_id', $entity->id())
-//      ->execute();
-//    if (!empty($votes)) {
-//      entity_delete_multiple('vote', $votes);
-//    }
-//    db_delete('votingapi_results')
-//      ->condition('entity_type', $entity->getEntityTypeId())
-//      ->condition('entity_id', $entity->id())
-//      ->execute();
-//  }
+  // If a vote is deleted, the results need to be updated.
+  if ($entity instanceof \Drupal\votingapi\VoteInterface) {
+    Drupal::service('plugin.manager.votingapi.resultfunction')
+      ->recalculateResults($entity->getVotedEntityType(), $entity->getVotedEntityId());
+  }
+  // For any other entity, remove any votes and results.
+  else {
+    $votes = Drupal::entityQuery('vote')
+      ->condition('voted_entity_type', $entity->getEntityTypeId())
+      ->condition('voted_entity_id', $entity->id())
+      ->execute();
+    if (!empty($votes)) {
+      entity_delete_multiple('vote', $votes);
+    }
+    db_delete('votingapi_result')
+      ->condition('voted_entity_type', $entity->getEntityTypeId())
+      ->condition('voted_entity_id', $entity->id())
+      ->execute();
+  }
 }
 
 /**
@@ -72,8 +65,8 @@ function votingapi_vote_insert(Drupal\votingapi\VoteInterface $vote) {
   if (Drupal::config('votingapi.settings')
       ->get('calculation_schedule') == 'immediate'
   ) {
-//    Drupal::service('plugin.manager.votingapi.result')
-//      ->recalculateResults($vote->getVotedEntityType(), $vote->getVotedEntityId());
+    Drupal::service('plugin.manager.votingapi.resultfunction')
+      ->recalculateResults($vote->getVotedEntityType(), $vote->getVotedEntityId());
   }
 }
 
@@ -88,27 +81,19 @@ function votingapi_cron() {
   // Recalculate results for any entities that have gotten votes since the last
   // run.
   if ($config->get('calculation_schedule') == 'cron') {
-    // APPROACH 1
-    //    $last_cron = Drupal::state()->get('votingapi.last_cron', 0);
-    //    $results = Drupal::entityQueryAggregate('vote')
-    //      ->condition('created', $last_cron, '>')
-    //      ->groupBy('entity_type')
-    //      ->groupBy('entity_id')
-    //      ->execute();
-    //    $manager = Drupal::service('plugin.manager.votingapi.result');
-    //    foreach ($results as $entity) {
-    //      $manager->recalculateResults($entity['entity_type'], $entity['entity_id']);
-    //    }
-    //    Drupal::state()->set('votingapi.last_cron', REQUEST_TIME);
-    //
-    // APPROACH 2
-    //  $time = REQUEST_TIME;
-    //  $last_cron = \Drupal::state()->get('votingapi_last_cron', 0);
-    //  $result = db_query('SELECT DISTINCT entity_type, entity_id FROM {votingapi_vote} WHERE timestamp > :timestamp', array(':timestamp' => $last_cron));
-    //  foreach ($result as $content) {
-    //    votingapi_recalculate_results($content->entity_type, $content->entity_id, TRUE);
-    //  }
-    //  \Drupal::state()->set('votingapi_last_cron', $time);
+    $last_cron = Drupal::state()->get('votingapi.last_cron', 0);
+    $results = Drupal::entityQueryAggregate('vote')
+      ->condition('timestamp', $last_cron, '>')
+      ->groupBy('voted_entity_type')
+      ->groupBy('voted_entity_id')
+      ->execute();
+    $manager = Drupal::service('plugin.manager.votingapi.resultfunction');
+    foreach ($results as $entity) {
+      $manager->recalculateResults(
+        $entity['voted_entity_type'], $entity['voted_entity_id']
+      );
+    }
+    Drupal::state()->set('votingapi.last_cron', REQUEST_TIME);
   }
 }
 
@@ -154,21 +139,6 @@ function votingapi_metadata($reset = FALSE) {
         'points' => array(
           'name' => t('Points'),
           'description' => t('Votes that contribute points/tokens/karma towards a total. May be positive or negative.'),
-        ),
-      ),
-      'functions' => array(
-        'count' => array(
-          'name' => t('Number of votes'),
-          'description' => t('The number of votes cast for a given piece of content.'),
-        ),
-        'average' => array(
-          'name' => t('Average vote'),
-          'description' => t('The average vote cast on a given piece of content.'),
-        ),
-        'sum' => array(
-          'name' => t('Total score'),
-          'description' => t('The sum of all votes for a given piece of content.'),
-          'value_types' => array('points'),
         ),
       ),
     );
