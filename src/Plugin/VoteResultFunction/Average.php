@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\votingapi\Average.
+ * Contains \Drupal\votingapi\Plugin\VoteResultFunction\Average.
  */
 
 namespace Drupal\votingapi\Plugin\VoteResultFunction;

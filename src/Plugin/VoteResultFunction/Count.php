@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\votingapi\Count.
+ * Contains \Drupal\votingapi\Plugin\VoteResultFunction\Count.
  */
 
 namespace Drupal\votingapi\Plugin\VoteResultFunction;

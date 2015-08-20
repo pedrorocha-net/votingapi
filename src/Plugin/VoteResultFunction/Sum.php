@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\votingapi\Sum.
+ * Contains \Drupal\votingapi\Plugin\VoteResultFunction\Sum.
  */
 
 namespace Drupal\votingapi\Plugin\VoteResultFunction;
