@@ -148,30 +148,3 @@ function votingapi_metadata($reset = FALSE) {
 
   return $data;
 }
-
-################
-# Code from Andy Post Drupal 8 port
-################
-
-/**
- * Implements of hook_menu().
- *
- * @todo Integrate with devel module
- * @todo Upgrade to Drupal 8
- */
-//function _votingapi_menu() {
-//  $items = array();
-//
-//  if (module_exists('devel_generate')) {
-//    $items['admin/config/development/generate/votingapi'] = array(
-//      'title' => 'Generate votes',
-//      'description' => 'Generate a given number of votes on site content. Optionally delete existing votes.',
-//      'page callback' => 'drupal_get_form',
-//      'page arguments' => array('votingapi_generate_votes_form'),
-//      'access arguments' => array('administer voting api'),
-//      'file' => 'votingapi.admin.inc',
-//    );
-//  }
-//
-//  return $items;
-//}
