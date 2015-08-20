@@ -30,7 +30,7 @@ use Drupal\votingapi\VoteInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid"
- *   },
+ *   }
  * )
  */
 class Vote extends ContentEntityBase implements VoteInterface {
@@ -62,7 +62,7 @@ class Vote extends ContentEntityBase implements VoteInterface {
    * {@inheritdoc}
    */
   public function getVotedEntityId() {
-    return $this->get('voted_entity_id')->value;
+    return $this->get('voted_entity_id')->target_id;
   }
 
   /**

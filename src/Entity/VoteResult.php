@@ -27,9 +27,8 @@ use Drupal\votingapi\VoteResultInterface;
  *   },
  *   base_table = "votingapi_result",
  *   entity_keys = {
- *     "id" = "id",
- *     "uuid" = "uuid"
- *   },
+ *     "id" = "id"
+ *   }
  * )
  */
 class VoteResult extends ContentEntityBase implements VoteResultInterface {
@@ -172,11 +171,6 @@ class VoteResult extends ContentEntityBase implements VoteResultInterface {
       ->setDescription(t('The vote result ID.'))
       ->setReadOnly(TRUE)
       ->setSetting('unsigned', TRUE);
-
-    $fields['uuid'] = BaseFieldDefinition::create('uuid')
-      ->setLabel(t('UUID'))
-      ->setDescription(t('The vote UUID.'))
-      ->setReadOnly(TRUE);
 
     $fields['voted_entity_type'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Entity Type'))

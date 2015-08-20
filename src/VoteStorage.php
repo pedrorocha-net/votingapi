@@ -58,7 +58,7 @@ class VoteStorage extends SqlContentEntityStorage implements VoteStorageInterfac
 
       // Give other modules a chance to alter the collection of votes.
       \Drupal::moduleHandler()
-        ->alter('votingapi_results', $cache, $entity_type, $entity_id);
+        ->alter('votingapi_result', $cache, $entity_type, $entity_id);
 
       // Now, do the caching. Woo.
       $cached = array();
@@ -79,7 +79,7 @@ class VoteStorage extends SqlContentEntityStorage implements VoteStorageInterfac
       VoteResult::saveMultiple($cached);
 
       // Give other modules a chance to act on the results of the vote totaling.
-      module_invoke_all('votingapi_results', $cached, $entity_type, $entity_id);
+      module_invoke_all('votingapi_result', $cached, $entity_type, $entity_id);
 
       return $cached;
     }
