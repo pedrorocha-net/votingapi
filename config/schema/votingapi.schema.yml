@@ -1,7 +1,5 @@
-# Schema for the configuration files of the votingapi module.
-
 votingapi.settings:
-  type: mapping
+  type: config_object
   label: 'VotingApi settings'
   mapping:
     anonymous_window:
