@@ -24,13 +24,7 @@ class VoteCreationTest extends WebTestBase {
   public static $modules = array('node', 'votingapi');
 
   /**
-   * An admin user to create content
-   * @var \Drupal\user\Entity\User
-   */
-  protected $admin_user;
-
-  /**
-   * A simple user vote permission
+   * A simple user with basic node and vote permissions
    * @var \Drupal\user\Entity\User
    */
   protected $logged_user;
@@ -47,6 +41,11 @@ class VoteCreationTest extends WebTestBase {
   private $node;
 
   /**
+   * @var \Drupal\votingapi\Entity\Vote
+   */
+  private $vote;
+
+  /**
    * The type of vote to use.
    */
   const TYPE = 'test';
@@ -59,21 +58,25 @@ class VoteCreationTest extends WebTestBase {
       'name' => 'Basic page'
     ));
 
-    $this->admin_user = $this->drupalCreateUser(array(
+    $this->logged_user = $this->drupalCreateUser(array(
       'access content',
       'create page content',
       'edit own page content'
     ));
 
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->logged_user);
 
-    $edit = array();
-    $edit['title[0][value]'] = $this->randomMachineName(8);
-    $edit['body[0][value]'] = $this->randomMachineName(16);
-    $this->drupalPostForm('node/add/page', $edit, t('Save'));
+    $title = $this->randomMachineName(8);
+    $edit = array(
+      'uid'      => $this->loggedInUser->id(),
+      'name'     => $this->loggedInUser->getUsername(),
+      'type'     => 'page',
+      'title'    => $title,
+      'body' => array('value' => $this->randomMachineName(16))
+    );
+    entity_create('node', $edit)->save();
 
-    // Check that the node exists in the database.
-    $this->node = $this->drupalGetNodeByTitle($edit['title[0][value]']);
+    $this->node = $this->drupalGetNodeByTitle($title);
     $this->assertTrue($this->node, 'Basic page created for Voting API tests.');
   }
 
@@ -81,8 +84,14 @@ class VoteCreationTest extends WebTestBase {
    * Test voting for users with right permissions.
    */
   public function testUserWithPermissionVoteOnANode() {
-    $this->assertTrue(TRUE, 'Cast a vote on the created node.');
-    //    $this->assertTrue(FALSE, 'Process results for the vote on the created node.');
+    $edit = array(
+      'voted_entity_type' => 'node',
+      'voted_entity_id' => $this->node->id(),
+      'value' => 50,
+      'tag' => self::TYPE
+    );
+    $this->vote = entity_create('vote', $edit)->save();
+    $this->assertTrue($this->vote, 'A vote was successfully cast on a node.');
   }
 
   //  public function testUserWithoutPermissionVoteOnANode() {
