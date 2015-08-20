@@ -87,19 +87,6 @@ function votingapi_vote_insert(Drupal\votingapi\VoteInterface $vote) {
 }
 
 /**
- * Implements hook_ENTITY_TYPE_update().
- */
-function votingapi_vote_update(Drupal\votingapi\VoteInterface $vote) {
-  // Update voting results when a vote is changed.
-  if (Drupal::config('votingapi.settings')
-      ->get('calculation_schedule') == 'immediate'
-  ) {
-    Drupal::service('plugin.manager.votingapi.result')
-      ->recalculateResults($vote->getVotedEntityType(), $vote->getVotedEntityId());
-  }
-}
-
-/**
  * Implements hook_cron().
  *
  * Allows db-intensive recalculations to be deferred until cron-time.
