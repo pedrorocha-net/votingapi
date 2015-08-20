@@ -23,6 +23,7 @@ use Drupal\votingapi\VoteInterface;
  *   id = "vote",
  *   label = @Translation("Vote"),
  *   handlers = {
+ *     "storage" = "Drupal\votingapi\VoteStorage",
  *     "views_data" = "Drupal\votingapi\Entity\VoteViewsData",
  *   },
  *   base_table = "votingapi_vote",
@@ -232,7 +233,7 @@ class Vote extends ContentEntityBase implements VoteInterface {
     $fields['timestamp'] = BaseFieldDefinition::create('created')
       ->setLabel(t('Created'))
       ->setDescription(t('The time that the entity was created.'))
-      ->setDefaultValue(0);
+      ->setDefaultValue(time());
 
     $fields['vote_source'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Value Type'))
