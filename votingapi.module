@@ -31,15 +31,6 @@ function votingapi_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
- * Implements hook_theme().
- */
-function votingapi_theme() {
-  $theme = [];
-
-  return $theme;
-}
-
-/**
  * Implements hook_entity_delete().
  *
  * Delete all votes and cache entries for the deleted entities
@@ -52,25 +43,25 @@ function votingapi_entity_delete(Drupal\Core\Entity\EntityInterface $entity) {
   //  Criteria::byEntity($type, $ids)->delete();
   //  ##############
 
-  // If a vote is deleted, the results need to be updated.
-  if ($entity instanceof \Drupal\votingapi\VoteInterface) {
-    Drupal::service('plugin.manager.votingapi.result')
-      ->recalculateResults($entity->getVotedEntityType(), $entity->getVotedEntityId());
-  }
-  // For any other entity, remove any votes and results.
-  else {
-    $votes = Drupal::entityQuery('vote')
-      ->condition('entity_type', $entity->getEntityTypeId())
-      ->condition('entity_id', $entity->id())
-      ->execute();
-    if (!empty($votes)) {
-      entity_delete_multiple('vote', $votes);
-    }
-    db_delete('votingapi_results')
-      ->condition('entity_type', $entity->getEntityTypeId())
-      ->condition('entity_id', $entity->id())
-      ->execute();
-  }
+//  // If a vote is deleted, the results need to be updated.
+//  if ($entity instanceof \Drupal\votingapi\VoteInterface) {
+//    Drupal::service('plugin.manager.votingapi.result')
+//      ->recalculateResults($entity->getVotedEntityType(), $entity->getVotedEntityId());
+//  }
+//  // For any other entity, remove any votes and results.
+//  else {
+//    $votes = Drupal::entityQuery('vote')
+//      ->condition('entity_type', $entity->getEntityTypeId())
+//      ->condition('entity_id', $entity->id())
+//      ->execute();
+//    if (!empty($votes)) {
+//      entity_delete_multiple('vote', $votes);
+//    }
+//    db_delete('votingapi_results')
+//      ->condition('entity_type', $entity->getEntityTypeId())
+//      ->condition('entity_id', $entity->id())
+//      ->execute();
+//  }
 }
 
 /**
@@ -81,8 +72,8 @@ function votingapi_vote_insert(Drupal\votingapi\VoteInterface $vote) {
   if (Drupal::config('votingapi.settings')
       ->get('calculation_schedule') == 'immediate'
   ) {
-    Drupal::service('plugin.manager.votingapi.result')
-      ->recalculateResults($vote->getVotedEntityType(), $vote->getVotedEntityId());
+//    Drupal::service('plugin.manager.votingapi.result')
+//      ->recalculateResults($vote->getVotedEntityType(), $vote->getVotedEntityId());
   }
 }
 
@@ -97,17 +88,20 @@ function votingapi_cron() {
   // Recalculate results for any entities that have gotten votes since the last
   // run.
   if ($config->get('calculation_schedule') == 'cron') {
-    $last_cron = Drupal::state()->get('votingapi.last_cron', 0);
-    $results = Drupal::entityQueryAggregate('vote')
-      ->condition('created', $last_cron, '>')
-      ->groupBy('entity_type')
-      ->groupBy('entity_id')
-      ->execute();
-    $manager = Drupal::service('plugin.manager.votingapi.result');
-    foreach ($results as $entity) {
-      $manager->recalculateResults($entity['entity_type'], $entity['entity_id']);
-    }
-    Drupal::state()->set('votingapi.last_cron', REQUEST_TIME);
+    // APPROACH 1
+    //    $last_cron = Drupal::state()->get('votingapi.last_cron', 0);
+    //    $results = Drupal::entityQueryAggregate('vote')
+    //      ->condition('created', $last_cron, '>')
+    //      ->groupBy('entity_type')
+    //      ->groupBy('entity_id')
+    //      ->execute();
+    //    $manager = Drupal::service('plugin.manager.votingapi.result');
+    //    foreach ($results as $entity) {
+    //      $manager->recalculateResults($entity['entity_type'], $entity['entity_id']);
+    //    }
+    //    Drupal::state()->set('votingapi.last_cron', REQUEST_TIME);
+    //
+    // APPROACH 2
     //  $time = REQUEST_TIME;
     //  $last_cron = \Drupal::state()->get('votingapi_last_cron', 0);
     //  $result = db_query('SELECT DISTINCT entity_type, entity_id FROM {votingapi_vote} WHERE timestamp > :timestamp', array(':timestamp' => $last_cron));
@@ -285,7 +279,3 @@ function votingapi_set_votes(&$votes, $criteria = NULL) {
   //  }
   //  return $touched;
 }
-
-################
-# Code from Andy Post Drupal 8 port
-################
