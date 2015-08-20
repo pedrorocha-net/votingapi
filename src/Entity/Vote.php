@@ -12,6 +12,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\user\UserInterface;
+use Drupal\votingapi\VoteInterface;
 
 /**
  * Defines the Vote entity.
@@ -32,7 +33,7 @@ use Drupal\user\UserInterface;
  *   },
  * )
  */
-class Vote extends ContentEntityBase {
+class Vote extends ContentEntityBase implements VoteInterface {
   /**
    * {@inheritdoc}
    */
@@ -43,42 +44,72 @@ class Vote extends ContentEntityBase {
     );
   }
 
-  public function getTargetEntityType() {
-    return $this->get('target_entity_type')->value;
+  /**
+   * {@inheritdoc}
+   */
+  public function getVotedEntityType() {
+    return $this->get('voted_entity_type')->value;
   }
 
-  public function setTargetEntityType($name) {
-    return $this->set('target_entity_type', $name);
+  /**
+   * {@inheritdoc}
+   */
+  public function setVotedEntityType($name) {
+    return $this->set('voted_entity_type', $name);
   }
 
-  public function getTargetEntityId() {
-    return $this->get('target_entity_id')->value;
+  /**
+   * {@inheritdoc}
+   */
+  public function getVotedEntityId() {
+    return $this->get('voted_entity_id')->value;
   }
 
-  public function setTargetEntityId($id) {
-    return $this->set('target_entity_id', $id);
+  /**
+   * {@inheritdoc}
+   */
+  public function setVotedEntityId($id) {
+    return $this->set('voted_entity_id', $id);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getValue() {
     return $this->get('value')->value;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function setValue($value) {
     return $this->set('value', $value);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getValueType() {
     return $this->get('value_type')->value;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function setValueType($value_type) {
     return $this->set('value_type', $value_type);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getTag() {
     return $this->get('tag')->value;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function setTag($tag) {
     return $this->set('tag', $tag);
   }
@@ -113,18 +144,30 @@ class Vote extends ContentEntityBase {
     return $this;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getTimestamp() {
     return $this->get('timestamp')->value;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function setTimestamp($timestamp) {
     return $this->set('timestamp', $timestamp);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getSource() {
     return $this->get('vote_source')->value;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function setSource($source) {
     return $this->set('vote_source', $source);
   }
@@ -145,18 +188,18 @@ class Vote extends ContentEntityBase {
       ->setDescription(t('The vote UUID.'))
       ->setReadOnly(TRUE);
 
-    $fields['target_entity_type'] = BaseFieldDefinition::create('string')
+    $fields['voted_entity_type'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Entity Type'))
-      ->setDescription(t('The type of entity that the vote applies to.'))
+      ->setDescription(t('The type from the voted entity.'))
       ->setDefaultValue('node')
       ->setSettings(array(
         'max_length' => 64
       ))
       ->setRequired(TRUE);
 
-    $fields['target_entity_id'] = BaseFieldDefinition::create('entity_reference')
+    $fields['voted_entity_id'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Voted entity'))
-      ->setDescription(t('The ID of the entity that the vote applies to.'))
+      ->setDescription(t('The ID from the voted entity'))
       ->setDefaultValue(0)
       ->setRequired(TRUE);
 
@@ -193,7 +236,7 @@ class Vote extends ContentEntityBase {
 
     $fields['vote_source'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Value Type'))
-      ->setDescription(t('The username of the user who submitted the vote.'))
+      ->setDescription(t('The IP from the user who submitted the vote.'))
       ->setDefaultValueCallback('Drupal\votingapi\Entity\Vote::getCurrentIp')
       ->setSettings(array(
         'max_length' => 255
