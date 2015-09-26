@@ -1,9 +1,0 @@
-<?php
-
-/**
- * Implements hook_vote_result_info_alter().
- */
-function votingapi_test_vote_result_info_alter(&$results) {
-  // Remove the "count" result
-  unset($results['vote_count']);
-}
