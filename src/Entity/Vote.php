@@ -37,15 +37,6 @@ use Drupal\votingapi\VoteInterface;
  * )
  */
 class Vote extends ContentEntityBase implements VoteInterface {
-  /**
-   * {@inheritdoc}
-   */
-  public static function preCreate(EntityStorageInterface $storage_controller, array &$values) {
-    parent::preCreate($storage_controller, $values);
-    $values += array(
-      'user_id' => \Drupal::currentUser()->id(),
-    );
-  }
 
   /**
    * {@inheritdoc}
