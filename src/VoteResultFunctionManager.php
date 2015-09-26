@@ -45,7 +45,7 @@ class VoteResultFunctionManager extends DefaultPluginManager {
   /**
    * Get the voting results for an entity.
    *
-   * @param string $entity_type
+   * @param string $entity_type_id
    *   The type of entity, e.g. 'node'.
    * @param int $entity_id
    *   The ID of the entity.
@@ -53,12 +53,12 @@ class VoteResultFunctionManager extends DefaultPluginManager {
    * @return array
    *   An nested array
    */
-  public function getResults($entity_type, $entity_id) {
+  public function getResults($entity_type_id, $entity_id) {
     $results = array();
 
     $result = db_select('votingapi_result', 'v')
       ->fields('v', array('tag', 'function', 'value'))
-      ->condition('voted_entity_type', $entity_type)
+      ->condition('voted_entity_type', $entity_type_id)
       ->condition('voted_entity_id', $entity_id)
       ->execute();
     while ($row = $result->fetchAssoc()) {
@@ -69,20 +69,32 @@ class VoteResultFunctionManager extends DefaultPluginManager {
   }
 
   /**
-   * Recalculate the voting results for a given entity.
+   * Recalculates the aggregate voting results of all votes for a given entity.
    *
-   * @param string $entity_type
+   * Loads all votes for a given piece of content, then calculates and caches the
+   * aggregate vote results. This is only intended for modules that have assumed
+   * responsibility for the full voting cycle: the votingapi_set_vote() function
+   * recalculates automatically.
+   *
+   *
+   * @param string $entity_type_id
+   *   A string identifying the type of content being rated. Node, comment,
+   *   aggregator item, etc.
    * @param string $entity_id
+   *   The key ID of the content being rated.
+   * @param string $vote_type
    */
-  public function recalculateResults($entity_type, $entity_id) {
+  public function recalculateResults($entity_type_id, $entity_id, $vote_type) {
     db_delete('votingapi_result')
-      ->condition('voted_entity_type', $entity_type)
+      ->condition('voted_entity_type', $entity_type_id)
       ->condition('voted_entity_id', $entity_id)
+      ->condition('tag', $vote_type)
       ->execute();
 
     $vote_ids = \Drupal::entityQuery('vote')
-      ->condition('voted_entity_type', $entity_type)
+      ->condition('voted_entity_type', $entity_type_id)
       ->condition('voted_entity_id', $entity_id)
+      ->condition('tag', $vote_type)
       ->sort('tag')
       ->execute();
     $vote_storage = \Drupal::entityManager()->getStorage('vote');
@@ -118,7 +130,7 @@ class VoteResultFunctionManager extends DefaultPluginManager {
   protected function performAndStore($votes) {
     $entity_type = $votes[0]->getVotedEntityType();
     $entity_id = $votes[0]->getVotedEntityId();
-    $vote_type = $votes[0]->bundle();
+    $vote_type = $votes[0]->getTag();
 
     foreach ($this->getDefinitions() as $plugin_id => $definition) {
       $plugin = $this->createInstance($plugin_id);

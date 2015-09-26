@@ -22,11 +22,14 @@ use Drupal\votingapi\VoteInterface;
  * @ContentEntityType(
  *   id = "vote",
  *   label = @Translation("Vote"),
+ *   bundle_label = @Translation("Vote type"),
+ *   bundle_entity_type = "vote_type",
  *   handlers = {
  *     "storage" = "Drupal\votingapi\VoteStorage",
  *     "views_data" = "Drupal\votingapi\Entity\VoteViewsData",
  *   },
  *   base_table = "votingapi_vote",
+ *   translatable = FALSE,
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid"
@@ -48,28 +51,28 @@ class Vote extends ContentEntityBase implements VoteInterface {
    * {@inheritdoc}
    */
   public function getVotedEntityType() {
-    return $this->get('voted_entity_type')->value;
+    return $this->get('entity_type')->value;
   }
 
   /**
    * {@inheritdoc}
    */
   public function setVotedEntityType($name) {
-    return $this->set('voted_entity_type', $name);
+    return $this->set('entity_type', $name);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getVotedEntityId() {
-    return $this->get('voted_entity_id')->target_id;
+    return $this->get('entity_id')->target_id;
   }
 
   /**
    * {@inheritdoc}
    */
   public function setVotedEntityId($id) {
-    return $this->set('voted_entity_id', $id);
+    return $this->set('entity_id', $id);
   }
 
   /**
@@ -98,20 +101,6 @@ class Vote extends ContentEntityBase implements VoteInterface {
    */
   public function setValueType($value_type) {
     return $this->set('value_type', $value_type);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getTag() {
-    return $this->get('tag')->value;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setTag($tag) {
-    return $this->set('tag', $tag);
   }
 
   /**
@@ -147,14 +136,14 @@ class Vote extends ContentEntityBase implements VoteInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTimestamp() {
+  public function getCreatedTime() {
     return $this->get('timestamp')->value;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setTimestamp($timestamp) {
+  public function setCreatedTime($timestamp) {
     return $this->set('timestamp', $timestamp);
   }
 
@@ -188,7 +177,13 @@ class Vote extends ContentEntityBase implements VoteInterface {
       ->setDescription(t('The vote UUID.'))
       ->setReadOnly(TRUE);
 
-    $fields['voted_entity_type'] = BaseFieldDefinition::create('string')
+    $fields['type'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Type'))
+      ->setDescription(t('The vote type.'))
+      ->setSetting('target_type', 'vote_type')
+      ->setReadOnly(TRUE);
+
+    $fields['entity_type'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Entity Type'))
       ->setDescription(t('The type from the voted entity.'))
       ->setDefaultValue('node')
@@ -197,7 +192,7 @@ class Vote extends ContentEntityBase implements VoteInterface {
       ))
       ->setRequired(TRUE);
 
-    $fields['voted_entity_id'] = BaseFieldDefinition::create('entity_reference')
+    $fields['entity_id'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Voted entity'))
       ->setDescription(t('The ID from the voted entity'))
       ->setDefaultValue(0)
@@ -215,13 +210,6 @@ class Vote extends ContentEntityBase implements VoteInterface {
         'max_length' => 64
       ))
       ->setDefaultValue('percent');
-
-    $fields['tag'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Tag'))
-      ->setSettings(array(
-        'max_length' => 64,
-      ))
-      ->setDefaultValue('vote');
 
     $fields['user_id'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Authored by'))

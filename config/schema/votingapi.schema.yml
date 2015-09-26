@@ -11,3 +11,20 @@ votingapi.settings:
     calculation_schedule:
       type: string
       label: 'Vote tallying'
+
+votingapi.vote_type.*:
+  type: config_entity
+  label: 'Vote Type'
+  mapping:
+    id:
+      type: string
+      label: 'Machine-readable name'
+    label:
+      type: label
+      label: 'Name'
+    value_type:
+      type: string
+      label: 'Type of vote value (percentage, points, etc.)'
+    description:
+      type: text
+      label: 'Description'

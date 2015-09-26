@@ -94,39 +94,10 @@ interface VoteResultInterface extends ContentEntityInterface, EntityOwnerInterfa
   /**
    * {@inheritdoc}
    */
-  public function getTag();
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setTag($tag);
-
-  /**
-   * {@inheritdoc}
-   */
   public function getFunction();
 
   /**
    * {@inheritdoc}
    */
   public function setFunction($tag);
-
-  /**
-   * Returns the vote creation timestamp.
-   *
-   * @return int
-   *   Voting timestamp.
-   */
-  public function getTimestamp();
-
-  /**
-   * Sets the vote creation timestamp.
-   *
-   * @param int $timestamp
-   *   Voting creation timestamp.
-   *
-   * @return \Drupal\votingapi\VoteInterface
-   *   The called vote.
-   */
-  public function setTimestamp($timestamp);
 }

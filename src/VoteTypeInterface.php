@@ -7,29 +7,26 @@
 
 namespace Drupal\votingapi;
 
+use Drupal\Core\Config\Entity\ConfigEntityInterface;
+
 /**
- * Provides an interface for a VoteType plugin.
- *
- * @see \Drupal\votingapi\Annotation\VoteType
- * @see \Drupal\votingapi\VoteTypeBase
- * @see plugin_api
+ * Provides an interface defining a vote type entity.
  */
-interface VoteTypeInterface {
+interface VoteTypeInterface extends ConfigEntityInterface {
 
   /**
-   * Retrieve the label for the vote type.
+   * Returns the description.
    *
    * @return string
-   *   The translated label
-   */
-  public function getLabel();
-
-
-  /**
-   * Retrieve the description for the vote type.
-   *
-   * @return string
-   *   The translated description
+   *   The description of this vote type.
    */
   public function getDescription();
+
+  /**
+   * Returns the type of vote value. (e.g. points, percentage, etc.)
+   *
+   * @return string
+   *   The type of vote value.
+   */
+  public function getValueType();
 }

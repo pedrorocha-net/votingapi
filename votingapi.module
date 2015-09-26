@@ -39,20 +39,24 @@ function votingapi_entity_delete(Drupal\Core\Entity\EntityInterface $entity) {
   // If a vote is deleted, the results need to be updated.
   if ($entity instanceof \Drupal\votingapi\VoteInterface) {
     Drupal::service('plugin.manager.votingapi.resultfunction')
-      ->recalculateResults($entity->getVotedEntityType(), $entity->getVotedEntityId());
+      ->recalculateResults(
+        $entity->getVotedEntityType(),
+        $entity->getVotedEntityId(),
+        $entity->getTag()
+      );
   }
   // For any other entity, remove any votes and results.
   else {
     $votes = Drupal::entityQuery('vote')
-      ->condition('voted_entity_type', $entity->getEntityTypeId())
-      ->condition('voted_entity_id', $entity->id())
+      ->condition('entity_type', $entity->getEntityTypeId())
+      ->condition('entity_id', $entity->id())
       ->execute();
     if (!empty($votes)) {
       entity_delete_multiple('vote', $votes);
     }
     db_delete('votingapi_result')
-      ->condition('voted_entity_type', $entity->getEntityTypeId())
-      ->condition('voted_entity_id', $entity->id())
+      ->condition('entity_type', $entity->getEntityTypeId())
+      ->condition('entity_id', $entity->id())
       ->execute();
   }
 }
@@ -66,7 +70,11 @@ function votingapi_vote_insert(Drupal\votingapi\VoteInterface $vote) {
       ->get('calculation_schedule') == 'immediate'
   ) {
     Drupal::service('plugin.manager.votingapi.resultfunction')
-      ->recalculateResults($vote->getVotedEntityType(), $vote->getVotedEntityId());
+      ->recalculateResults(
+        $vote->getVotedEntityType(),
+        $vote->getVotedEntityId(),
+        $vote->getTag()
+      );
   }
 }
 
@@ -84,67 +92,18 @@ function votingapi_cron() {
     $last_cron = Drupal::state()->get('votingapi.last_cron', 0);
     $results = Drupal::entityQueryAggregate('vote')
       ->condition('timestamp', $last_cron, '>')
-      ->groupBy('voted_entity_type')
-      ->groupBy('voted_entity_id')
+      ->groupBy('entity_type')
+      ->groupBy('entity_id')
+      ->groupBy('tag')
       ->execute();
     $manager = Drupal::service('plugin.manager.votingapi.resultfunction');
     foreach ($results as $entity) {
       $manager->recalculateResults(
-        $entity['voted_entity_type'], $entity['voted_entity_id']
+        $entity['entity_type'],
+        $entity['entity_id'],
+        $entity['tag']
       );
     }
     Drupal::state()->set('votingapi.last_cron', REQUEST_TIME);
   }
-}
-
-/**
- * Returns metadata about tags, value_types, and results defined by vote modules.
- *
- * If your module needs to determine what existing tags, value_types, etc., are
- * being supplied by other modules, call this function. Querying the votingapi
- * tables for this information directly is discouraged, as values may not appear
- * consistently. (For example, 'average' does not appear in the cache table until
- * votes have actually been cast in the cache table.)
- *
- * Three major bins of data are stored: tags, value_types, and functions. Each
- * entry in these bins is keyed by the value stored in the actual VotingAPI
- * tables, and contains an array with (minimally) 'name' and 'description' keys.
- * Modules can add extra keys to their entries if desired.
- *
- * This metadata can be modified or expanded using hook_votingapi_metadata_alter().
- *
- * @param bool $reset
- *   Force get a fresh data.
- *
- * @return array
- *   An array of metadata defined by VotingAPI and altered by vote modules.
- *
- * @see hook_votingapi_metadata_alter()
- */
-function votingapi_metadata($reset = FALSE) {
-  static $data;
-  if ($reset || !isset($data)) {
-    $data = array(
-      'tags' => array(
-        'vote' => array(
-          'name' => t('Normal vote'),
-          'description' => t('The default tag for votes on content. If multiple votes with different tags are being cast on a piece of content, consider casting a "summary" vote with this tag as well.'),
-        ),
-      ),
-      'value_types' => array(
-        'percent' => array(
-          'name' => t('Percent'),
-          'description' => t('Votes in a specific range. Values are stored in a 1-100 range, but can be represented as any scale when shown to the user.'),
-        ),
-        'points' => array(
-          'name' => t('Points'),
-          'description' => t('Votes that contribute points/tokens/karma towards a total. May be positive or negative.'),
-        ),
-      ),
-    );
-
-    \Drupal::moduleHandler()->alter('votingapi_metadata', $data);
-  }
-
-  return $data;
 }

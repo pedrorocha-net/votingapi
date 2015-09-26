@@ -122,20 +122,6 @@ class VoteResult extends ContentEntityBase implements VoteResultInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTag() {
-    return $this->get('tag')->value;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setTag($tag) {
-    return $this->set('tag', $tag);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getFunction() {
     return $this->get('function')->value;
   }
@@ -150,14 +136,14 @@ class VoteResult extends ContentEntityBase implements VoteResultInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTimestamp() {
+  public function getCreatedTime() {
     return $this->get('timestamp')->value;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setTimestamp($timestamp) {
+  public function setCreatedTime($timestamp) {
     return $this->set('timestamp', $timestamp);
   }
 
@@ -172,7 +158,13 @@ class VoteResult extends ContentEntityBase implements VoteResultInterface {
       ->setReadOnly(TRUE)
       ->setSetting('unsigned', TRUE);
 
-    $fields['voted_entity_type'] = BaseFieldDefinition::create('string')
+    $fields['type'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Type'))
+      ->setDescription(t('The vote type.'))
+      ->setSetting('target_type', 'vote_type')
+      ->setReadOnly(TRUE);
+
+    $fields['entity_type'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Entity Type'))
       ->setDescription(t('The type from the voted entity.'))
       ->setSettings(array(
@@ -180,7 +172,7 @@ class VoteResult extends ContentEntityBase implements VoteResultInterface {
       ))
       ->setRequired(TRUE);
 
-    $fields['voted_entity_id'] = BaseFieldDefinition::create('entity_reference')
+    $fields['entity_id'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Voted entity'))
       ->setDescription(t('The ID from the voted entity'))
       ->setRequired(TRUE);
@@ -194,13 +186,6 @@ class VoteResult extends ContentEntityBase implements VoteResultInterface {
       ->setLabel(t('Value Type'))
       ->setSettings(array(
         'max_length' => 64
-      ))
-      ->setRequired(TRUE);
-
-    $fields['tag'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Tag'))
-      ->setSettings(array(
-        'max_length' => 64,
       ))
       ->setRequired(TRUE);
 

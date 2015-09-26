@@ -74,16 +74,6 @@ interface VoteInterface extends ContentEntityInterface, EntityOwnerInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTag();
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setTag($tag);
-
-  /**
-   * {@inheritdoc}
-   */
   public function getOwner();
 
   /**
@@ -100,25 +90,6 @@ interface VoteInterface extends ContentEntityInterface, EntityOwnerInterface {
    * {@inheritdoc}
    */
   public function setOwnerId($uid);
-
-  /**
-   * Returns the vote creation timestamp.
-   *
-   * @return int
-   *   Voting timestamp.
-   */
-  public function getTimestamp();
-
-  /**
-   * Sets the vote creation timestamp.
-   *
-   * @param int $timestamp
-   *   Voting creation timestamp.
-   *
-   * @return \Drupal\votingapi\VoteInterface
-   *   The called vote.
-   */
-  public function setTimestamp($timestamp);
 
   /**
    * Returns the source of the vote.  By default, this is the user's IP address.
