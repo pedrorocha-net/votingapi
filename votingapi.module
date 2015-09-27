@@ -32,76 +32,35 @@ function votingapi_help($route_name, RouteMatchInterface $route_match) {
 
 /**
  * Implements hook_entity_delete().
- *
- * Delete all votes and result entries for the deleted entities
  */
 function votingapi_entity_delete(Drupal\Core\Entity\EntityInterface $entity) {
-  // If a vote is deleted, the results need to be updated.
-  if ($entity instanceof \Drupal\votingapi\VoteInterface) {
-    Drupal::service('plugin.manager.votingapi.resultfunction')
-      ->recalculateResults(
-        $entity->getVotedEntityType(),
-        $entity->getVotedEntityId(),
-        $entity->getTag()
-      );
-  }
-  // For any other entity, remove any votes and results.
-  else {
-    $votes = Drupal::entityQuery('vote')
-      ->condition('entity_type', $entity->getEntityTypeId())
-      ->condition('entity_id', $entity->id())
-      ->execute();
-    if (!empty($votes)) {
-      entity_delete_multiple('vote', $votes);
-    }
-    db_delete('votingapi_result')
-      ->condition('entity_type', $entity->getEntityTypeId())
-      ->condition('entity_id', $entity->id())
-      ->execute();
-  }
-}
-
-/**
- * Implements hook_ENTITY_TYPE_insert().
- */
-function votingapi_vote_insert(Drupal\votingapi\VoteInterface $vote) {
-  // Update voting results when a new vote is cast.
-  if (Drupal::config('votingapi.settings')
-      ->get('calculation_schedule') == 'immediate'
-  ) {
-    Drupal::service('plugin.manager.votingapi.resultfunction')
-      ->recalculateResults(
-        $vote->getVotedEntityType(),
-        $vote->getVotedEntityId(),
-        $vote->getTag()
-      );
+  // Delete all votes and result entries for the deleted entities
+  if (!($entity instanceof \Drupal\votingapi\VoteInterface)) {
+    $vote_storage = \Drupal::entityManager()->getStorage('vote');
+    $vote_storage->deleteVotesForDeletedEntity(
+      $entity->getEntityTypeId(), $entity->id()
+    );
   }
 }
 
 /**
  * Implements hook_cron().
  *
- * Allows db-intensive recalculations to be deferred until cron-time.
+ * Recalculate results for any entities that have gotten votes since the last
+ * run.
  */
 function votingapi_cron() {
-  $config = Drupal::config('votingapi.settings');
-
-  // Recalculate results for any entities that have gotten votes since the last
-  // run.
-  if ($config->get('calculation_schedule') == 'cron') {
-    $last_cron = Drupal::state()->get('votingapi.last_cron', 0);
-    $results = Drupal::entityQueryAggregate('vote')
-      ->condition('timestamp', $last_cron, '>')
-      ->groupBy('entity_type')
-      ->groupBy('entity_id')
-      ->groupBy('tag')
-      ->execute();
+  if (Drupal::config('votingapi.settings')
+      ->get('calculation_schedule') == 'cron'
+  ) {
+    $vote_storage = \Drupal::entityManager()->getStorage('vote');
+    $results = $vote_storage->getVotesSinceMoment();
     $manager = Drupal::service('plugin.manager.votingapi.resultfunction');
     foreach ($results as $entity) {
       $manager->recalculateResults(
         $entity['entity_type'],
         $entity['entity_id'],
-        $entity['tag']
+        $entity['type']
       );
     }
     Drupal::state()->set('votingapi.last_cron', REQUEST_TIME);

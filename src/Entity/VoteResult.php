@@ -37,28 +37,28 @@ class VoteResult extends ContentEntityBase implements VoteResultInterface {
    * {@inheritdoc}
    */
   public function getVotedEntityType() {
-    return $this->get('voted_entity_type')->value;
+    return $this->get('entity_type')->value;
   }
 
   /**
    * {@inheritdoc}
    */
   public function setVotedEntityType($name) {
-    return $this->set('voted_entity_type', $name);
+    return $this->set('entity_type', $name);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getVotedEntityId() {
-    return $this->get('voted_entity_id')->value;
+    return $this->get('entity_id')->value;
   }
 
   /**
    * {@inheritdoc}
    */
   public function setVotedEntityId($id) {
-    return $this->set('voted_entity_id', $id);
+    return $this->set('entity_id', $id);
   }
 
   /**
@@ -129,8 +129,8 @@ class VoteResult extends ContentEntityBase implements VoteResultInterface {
   /**
    * {@inheritdoc}
    */
-  public function setFunction($source) {
-    return $this->set('function', $source);
+  public function setFunction($function) {
+    return $this->set('function', $function);
   }
 
   /**

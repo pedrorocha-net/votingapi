@@ -28,8 +28,8 @@ class VoteResultStorage extends SqlContentEntityStorage implements VoteResultSto
    */
   public function getEntityResults($entity_type, $entity_id, $vote_type, $function) {
     $query = \Drupal::entityQuery('vote_result')
-      ->condition('voted_entity_type', $entity_type)
-      ->condition('voted_entity_id', $entity_id)
+      ->condition('entity_type', $entity_type)
+      ->condition('entity_id', $entity_id)
       ->condition('tag', $vote_type, 'in');
     if (!empty($function)) {
       $query->condition('function', $function);

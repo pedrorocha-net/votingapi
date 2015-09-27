@@ -37,7 +37,6 @@ class VoteResultFunctionManager extends DefaultPluginManager {
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
     parent::__construct('Plugin/VoteResultFunction', $namespaces, $module_handler, 'Drupal\votingapi\VoteResultFunctionInterface', 'Drupal\votingapi\Annotation\VoteResultFunction');
-
     $this->alterInfo('vote_result_info');
     $this->setCacheBackend($cache_backend, 'vote_result_plugins');
   }
@@ -57,12 +56,12 @@ class VoteResultFunctionManager extends DefaultPluginManager {
     $results = array();
 
     $result = db_select('votingapi_result', 'v')
-      ->fields('v', array('tag', 'function', 'value'))
-      ->condition('voted_entity_type', $entity_type_id)
-      ->condition('voted_entity_id', $entity_id)
+      ->fields('v', array('type', 'function', 'value'))
+      ->condition('entity_type', $entity_type_id)
+      ->condition('entity_id', $entity_id)
       ->execute();
     while ($row = $result->fetchAssoc()) {
-      $results[$row['tag']][$row['function']] = $row['value'];
+      $results[$row['type']][$row['function']] = $row['value'];
     }
 
     return $results;
@@ -86,16 +85,16 @@ class VoteResultFunctionManager extends DefaultPluginManager {
    */
   public function recalculateResults($entity_type_id, $entity_id, $vote_type) {
     db_delete('votingapi_result')
-      ->condition('voted_entity_type', $entity_type_id)
-      ->condition('voted_entity_id', $entity_id)
-      ->condition('tag', $vote_type)
+      ->condition('entity_type', $entity_type_id)
+      ->condition('entity_id', $entity_id)
+      ->condition('type', $vote_type)
       ->execute();
 
     $vote_ids = \Drupal::entityQuery('vote')
-      ->condition('voted_entity_type', $entity_type_id)
-      ->condition('voted_entity_id', $entity_id)
-      ->condition('tag', $vote_type)
-      ->sort('tag')
+      ->condition('entity_type', $entity_type_id)
+      ->condition('entity_id', $entity_id)
+      ->condition('type', $vote_type)
+      ->sort('type')
       ->execute();
     $vote_storage = \Drupal::entityManager()->getStorage('vote');
     $votes = array();
@@ -128,16 +127,16 @@ class VoteResultFunctionManager extends DefaultPluginManager {
    *   expected to be the same vote type and for the same entity.
    */
   protected function performAndStore($votes) {
-    $entity_type = $votes[0]->getVotedEntityType();
+    $entity_type_id = $votes[0]->getVotedEntityType();
     $entity_id = $votes[0]->getVotedEntityId();
-    $vote_type = $votes[0]->getTag();
+    $vote_type = $votes[0]->bundle();
 
     foreach ($this->getDefinitions() as $plugin_id => $definition) {
       $plugin = $this->createInstance($plugin_id);
       db_insert('votingapi_result')->fields(array(
-        'voted_entity_id' => $entity_id,
-        'voted_entity_type' => $entity_type,
-        'tag' => $vote_type,
+        'entity_id' => $entity_id,
+        'entity_type' => $entity_type_id,
+        'type' => $vote_type,
         'function' => $plugin_id,
         'value' => $plugin->calculateResult($votes),
         'timestamp' => REQUEST_TIME,

@@ -14,4 +14,16 @@ use Drupal\Core\Entity\EntityStorageInterface;
  */
 interface VoteStorageInterface extends EntityStorageInterface {
 
+  /**
+   * Get votes since a determined moment
+   * @return mixed
+   */
+  function getVotesSinceMoment();
+
+  /**
+   * @param $entity_type_id
+   * @param $entity_id
+   * @return boolean
+   */
+  function deleteVotesForDeletedEntity($entity_type_id, $entity_id);
 }

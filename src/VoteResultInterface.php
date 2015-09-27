@@ -99,5 +99,5 @@ interface VoteResultInterface extends ContentEntityInterface, EntityOwnerInterfa
   /**
    * {@inheritdoc}
    */
-  public function setFunction($tag);
+  public function setFunction($function);
 }

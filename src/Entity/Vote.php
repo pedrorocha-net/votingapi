@@ -32,7 +32,8 @@ use Drupal\votingapi\VoteInterface;
  *   translatable = FALSE,
  *   entity_keys = {
  *     "id" = "id",
- *     "uuid" = "uuid"
+ *     "uuid" = "uuid",
+ *     "bundle" = "type",
  *   }
  * )
  */
@@ -41,70 +42,70 @@ class Vote extends ContentEntityBase implements VoteInterface {
   /**
    * {@inheritdoc}
    */
-  public function getVotedEntityType() {
+  function getVotedEntityType() {
     return $this->get('entity_type')->value;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setVotedEntityType($name) {
+  function setVotedEntityType($name) {
     return $this->set('entity_type', $name);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getVotedEntityId() {
+  function getVotedEntityId() {
     return $this->get('entity_id')->target_id;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setVotedEntityId($id) {
+  function setVotedEntityId($id) {
     return $this->set('entity_id', $id);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getValue() {
+  function getValue() {
     return $this->get('value')->value;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setValue($value) {
+  function setValue($value) {
     return $this->set('value', $value);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getValueType() {
+  function getValueType() {
     return $this->get('value_type')->value;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setValueType($value_type) {
+  function setValueType($value_type) {
     return $this->set('value_type', $value_type);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getOwner() {
+  function getOwner() {
     return $this->get('user_id')->entity;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setOwner(UserInterface $account) {
+  function setOwner(UserInterface $account) {
     $this->set('user_id', $account->id());
     return $this;
   }
@@ -112,14 +113,14 @@ class Vote extends ContentEntityBase implements VoteInterface {
   /**
    * {@inheritdoc}
    */
-  public function getOwnerId() {
+  function getOwnerId() {
     return $this->get('user_id')->target_id;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setOwnerId($uid) {
+  function setOwnerId($uid) {
     $this->set('user_id', $uid);
     return $this;
   }
@@ -127,35 +128,35 @@ class Vote extends ContentEntityBase implements VoteInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCreatedTime() {
+  function getCreatedTime() {
     return $this->get('timestamp')->value;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setCreatedTime($timestamp) {
+  function setCreatedTime($timestamp) {
     return $this->set('timestamp', $timestamp);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getSource() {
+  function getSource() {
     return $this->get('vote_source')->value;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setSource($source) {
+  function setSource($source) {
     return $this->set('vote_source', $source);
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
+  static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
 
     $fields['id'] = BaseFieldDefinition::create('integer')
       ->setLabel(t('ID'))
@@ -232,7 +233,7 @@ class Vote extends ContentEntityBase implements VoteInterface {
    * @return array
    *   An array of default values.
    */
-  public static function getCurrentUserId() {
+  static function getCurrentUserId() {
     return \Drupal::currentUser()->id();
   }
 
@@ -244,7 +245,44 @@ class Vote extends ContentEntityBase implements VoteInterface {
    * @return array
    *   An array of default values.
    */
-  public static function getCurrentIp() {
+  static function getCurrentIp() {
     return \Drupal::request()->getClientIp();
   }
+
+  /**
+   * Update voting results when a new vote is cast.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $storage
+   * @param bool|TRUE $update
+   */
+  function postSave(EntityStorageInterface $storage, $update = TRUE) {
+    if (\Drupal::config('votingapi.settings')
+        ->get('calculation_schedule') == 'immediate'
+    ) {
+      \Drupal::service('plugin.manager.votingapi.resultfunction')
+        ->recalculateResults(
+          $this->getVotedEntityType(),
+          $this->getVotedEntityId(),
+          $this->bundle()
+        );
+    }
+  }
+
+  /**
+   * If a vote is deleted, the results needs to be updated.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $storage
+   * @param array $entities
+   */
+  static function postDelete(EntityStorageInterface $storage, array $entities) {
+    parent::postDelete($storage, $entities);
+
+    foreach ($entities as $entity) {
+      \Drupal::service('plugin.manager.votingapi.resultfunction')
+        ->recalculateResults(
+          $entity->getVotedEntityType(),
+          $entity->getVotedEntityId(),
+          $entity->bundle()
+        );
+    }
+  }
+
 }
