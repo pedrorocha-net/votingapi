@@ -7,6 +7,7 @@
 
 namespace Drupal\votingapi\Entity;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
@@ -264,6 +265,8 @@ class Vote extends ContentEntityBase implements VoteInterface {
           $this->getVotedEntityId(),
           $this->bundle()
         );
+      $cache_tag = $this->getVotedEntityType() . ':' . $this->getVotedEntityId();
+      Cache::invalidateTags([$cache_tag]);
     }
   }
 

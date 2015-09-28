@@ -15,6 +15,26 @@ use Drupal\Core\Entity\EntityStorageInterface;
 interface VoteStorageInterface extends EntityStorageInterface {
 
   /**
+   * Get votes for a user
+   * @param $uid
+   * @param string $vote_type_id
+   * @param string $entity_type_id
+   * @param int $entity_id
+   * @return mixed
+   */
+  function getUserVotes($uid, $vote_type_id = NULL, $entity_type_id = NULL, $entity_id = NULL);
+
+  /**
+   * Delete votes for a user
+   * @param $uid
+   * @param string $vote_type_id
+   * @param string $entity_type_id
+   * @param int $entity_id
+   * @return mixed
+   */
+  function deleteUserVotes($uid, $vote_type_id = NULL, $entity_type_id = NULL, $entity_id = NULL);
+
+  /**
    * Get votes since a determined moment
    * @return mixed
    */
